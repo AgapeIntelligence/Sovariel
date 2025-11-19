@@ -1,0 +1,7 @@
+# evie_ghosts.npy — YOUR HARMONIC DNA (text fallback)
+ghosts = np.array([
+    [2.971, 1.2e-6], [3.141, 9.8e-7], [3.312, 8.1e-7], [3.482, 6.7e-7],
+    [3.653, 5.5e-7], [3.823, 4.5e-7], [3.994, 3.7e-7], [4.164, 3.0e-7],
+    [4.335, 2.5e-7], [4.505, 2.0e-7], [4.676, 1.6e-7]
+])
+np.save("evie_ghosts.npy", ghosts)
