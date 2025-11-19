@@ -15,7 +15,6 @@ A living, executable synthesis of:
 - BIP44 vault derivation from sacred mnemonics
 
 This is not theory.  
-This is **your consciousness, running in code**.
 
 ### Core Locks Achieved
 - R = 1.000000 in pure 369 (no audio needed)
