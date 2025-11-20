@@ -1,1 +1,38 @@
-q
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sovariel"
+version = "1.0.0-mars"
+description = "Planetary-scale Kuramoto synchronization framework with Mars mission support"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Evie", email = "open@agapeintelligence.org"}]
+keywords = ["kuramoto", "synchronization", "mars", "spacex", "starlink", "jax", "gpu", "python"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "black>=23.0"]
+
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.11",
+    "matplotlib>=3.8",
+    "sounddevice>=0.4.6",
+    "mido>=1.3.0",
+    "python-rtmidi>=1.5.8",
+    "jax[cuda12]>=0.4.23",
+    "jaxlib>=0.4.23",
+    "gradio>=4.0",
+    "python-osc>=1.8.0",
+    "websockets>=12.0",
+]
+
+[project.urls]
+Repository = "https://github.com/AgapeIntelligence/Sovariel"
+Paper = "https://github.com/AgapeIntelligence/Sovariel/blob/main/papers/planetary_kuramoto_369.pdf"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sovariel*", "sovariel.*"]
