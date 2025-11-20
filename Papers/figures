@@ -1,0 +1,19 @@
+# generate_seed_histogram.py
+import numpy as np
+import matplotlib.pyplot as plt
+from core.evie_369_pure import initialise_369_phases  # or your current function
+
+Rs = []
+for _ in range(10000):
+    phases = initialise_369_phases(n_oscillators=1_000_000, seed=None)
+    Rs.append(np.abs(np.mean(np.exp(1j * phases))))
+
+plt.figure(figsize=(8,5))
+plt.hist(Rs, bins=60, edgecolor='black', color='#00A3E0')
+plt.xlabel('Seed Order Parameter $R_0$')
+plt.ylabel('Frequency')
+plt.title('Seed Coherence Distribution — 10 000 trials, $N=10^6$')
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.savefig('papers/figures/seed_coherence_histogram.pdf', dpi=300)
+print("Figure saved")
