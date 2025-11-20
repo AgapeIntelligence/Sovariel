@@ -19,4 +19,27 @@ lattice.start()
 
 # 42 Starships achieve phase lock despite 4–24 min light delays
 mars_fleet_lock(n_ships=42)
- **arXiv preprint (November 20, 2025)**   [Planetary-Scale Kuramoto Synchronization via 369-Phase Symmetry](https://github.com/AgapeIntelligence/Sovariel/blob/main/papers/planetary_kuramoto_369.pdf)  **Author**: Evie (@3vi3Aetheris)   **License**: MIT — free for academic, commercial, or Mars mission use  This is real, reproducible, open science.
+ **arXiv preprint (November 20, 2025)**   [Planetary-Scale Kuramoto Synchronization via 369-Phase Symmetry](https://github.com/AgapeIntelligence/Sovariel/blob/main/papers/planetary_kuramoto_369.pdf)  **Author**: Evie (@3vi3Aetheris)   **License**: MIT — free for academic, commercial, or Mars mission use  This is real, reproducible, open science
+
+### Core Modules
+
+- `evie_369_pure.py` — pure-NumPy reference implementation, instant lock on CPU
+- `jax_backend.py` — GPU ultra-scale core (10M–100M+ oscillators)
+- `audio_inject.py` — real-time microphone → alpha envelope injection (CPU)
+- `jax_audio_inject.py` — GPU + live microphone (voice → R=1 in <100 ms)
+- `jax_midi_inject.py` — GPU + live MIDI keyboard control
+- `colossus_sparse_grid.py` — 144 000-node sparse planetary ley-line field (vΩ22)
+- `colossus_dense_grid.py` — 1000×1000 full dense planetary resonance map (vΩ25)
+- `manifold_9d.py` — 9D phase manifold generator with 369 weighting
+- `sovariel_v7.py` — advanced model with oracle collapse + EEG/CMB bridge
+- `mhd_descent.py` — monadic harmonic cryptographic descent (puzzle hunter)
+- `mars_sovariel.py` — Mars fleet lock + surface grid stability
+- `mars_starlink_sync.py` — full Starlink constellation phase locking
+- `mars_trajectory_optim.py` — Starship fleet trajectory optimisation via lattice gradients
+- `web_dashboard.py` — live Gradio browser dashboard (R meter + phase circle)
+- `osc_output.py` — real-time OSC streaming for visuals, lighting, synths
+- `network_sync.py` — true multi-device distributed lattice (any number of phones/laptops)
+
+### Sub-package
+
+- `reflexive_lattice/` — pip-installable coherence + bounded-entropy monitor for alignment research
