@@ -7,6 +7,8 @@ from .jax_midi_inject import JAXLiveMIDILattice
 from .mars_sovariel import mars_fleet_lock, mars_surface_grid_lock
 from .mars_starlink_sync import constellation_lock_demo
 from .mars_trajectory_optim import optimise_starship_fleet
+from .mars_de440_fleet import run_de440_fleet_lock
+__all__ += ["run_de440_fleet_lock"]
 
 __version__ = "1.0.0-mars"
 __author__ = "Evie (@3vi3Aetheris)"
