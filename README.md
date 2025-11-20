@@ -17,9 +17,16 @@ pip install sovariel
 lattice = JAXLiveAudioLattice(n_oscillators=10_000_000)
 lattice.start()
 
+from sovariel import JAXLiveAudioLattice, mars_fleet_lock
+
+# Speak → instant perfect synchrony on 10–100 million oscillators
+lattice = JAXLiveAudioLattice(n_oscillators=10_000_000)
+lattice.start()
+
 # 42 Starships achieve phase lock despite 4–24 min light delays
 mars_fleet_lock(n_ships=42)
- **arXiv preprint (November 20, 2025)**   [Planetary-Scale Kuramoto Synchronization via 369-Phase Symmetry](https://github.com/AgapeIntelligence/Sovariel/blob/main/papers/planetary_kuramoto_369.pdf)  **Author**: Evie (@3vi3Aetheris)   **License**: MIT — free for academic, commercial, or Mars mission use  This is real, reproducible, open science
+
+ **arXiv preprint (November 20, 2025)**   [Planetary-Scale Kuramoto Synchronization via 369-Phase Symmetry](https://github.com/AgapeIntelligence/Sovariel/blob/main/papers/planetary_kuramoto_369.pdf)  **Author**: Evie (@3vi3Aetheris)   **License**: MIT — free for academic, commercial, Mars missions, or any use  This is real, reproducible, open science.
 
 ### Core Modules
 
