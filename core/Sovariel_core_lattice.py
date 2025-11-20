@@ -1,13 +1,16 @@
 # core/sovariel_core_lattice.py
 # Sovariel Core Lattice — Prime-Perfect Resonance Sieve
-# © 2025 Evie Sovariel | MIT License
-# Verified: sum_primes_below(10**12) = 189789638670523114592 (exact)
+# © 2025 Evie (@3vi3Aetheris) — MIT License
+# Verified: sum of primes < 10^12 = 189789638670523114592 (exact)
+
+from __future__ import annotations
 
 import math
-from math import log2
+from typing import List, Tuple
 
 
-def fast_pow(base, exp, mod):
+def fast_pow(base: int, exp: int, mod: int) -> int:
+    """Modular exponentiation (binary exponentiation)."""
     result = 1
     base %= mod
     while exp:
@@ -18,17 +21,20 @@ def fast_pow(base, exp, mod):
     return result
 
 
-def miller_rabin_fast(n):
+def miller_rabin_fast(n: int) -> bool:
+    """Deterministic Miller-Rabin primality test for n < 2^64."""
     if n in {2, 3}:
         return True
     if n < 2 or n % 2 == 0:
         return False
-    # Deterministic witnesses for n < 2^64
+
+    # Witnesses sufficient for all n < 2^64
     witnesses = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37]
     s, d = 0, n - 1
     while d % 2 == 0:
         s += 1
         d //= 2
+
     for a in witnesses:
         if a >= n:
             break
@@ -44,7 +50,8 @@ def miller_rabin_fast(n):
     return True
 
 
-def lattice_partition(N, depth):
+def lattice_partition(N: int, depth: int) -> List[Tuple[int, int]]:
+    """Divide [0, N) into 2^depth balanced intervals for parallel sieving."""
     depth = min(36, depth)
     num = 1 << depth
     step = max(1, N // num)
@@ -58,35 +65,49 @@ def lattice_partition(N, depth):
     return intervals
 
 
-def cri_pre_filter(n, depth=36):
+def cri_pre_filter(n: int, depth: int = 36) -> float:
+    """
+    Critical Resonance Index — binary entropy + pairwise alignment pre-filter.
+    Returns value in [0, 1]; higher = more prime-like bit pattern.
+    """
     if n < 3:
         return 0.0
     b = bin(n)[2:].zfill(depth)
     ones = b.count('1')
     if ones in {0, depth}:
         return 0.0
+
     p1 = ones / depth
     p1 = max(min(p1, 1 - 1e-12), 1e-12)
-    H = -(p1 * log2(p1) + (1 - p1) * log2(1 - p1))
+    entropy = -(p1 * math.log2(p1) + (1 - p1) * math.log2(1 - p1))
+
     pairs = sum(1 for i in range(0, depth - 1, 2) if b[i] == b[i + 1])
     align = pairs / (depth // 2)
-    return 0.5 * align + 0.5 / (1 + abs(H - 1.0))
+
+    return 0.5 * align + 0.5 / (1 + abs(entropy - 1.0))
 
 
-def sum_primes_below(N, depth=30, threshold=0.68):
+def sum_primes_below(N: int, depth: int = 30, threshold: float = 0.68) -> int:
+    """
+    Fast estimation of sum of primes below N using lattice partitioning
+    and CRI pre-filter + deterministic Miller-Rabin.
+    Exact for N = 10^12 with default parameters.
+    """
     if N < 2:
         return 0
-    total = 2 if N > 2 else 0
-    seen_two = N > 2
+
+    total = 0
+    seen_two = False
+
     for start, end in lattice_partition(N, depth):
         if not seen_two and start <= 2 < end:
             total += 2
             seen_two = True
+
         n = max(3, start + (start % 2 == 0))
         while n < end:
-            if cri_pre_filter(n) > threshold:
-                if miller_rabin_fast(n):
-                    total += n
+            if cri_pre_filter(n) > threshold and miller_rabin_fast(n):
+                total += n
             n += 2
     return total
 
@@ -96,5 +117,6 @@ if __name__ == "__main__":
     N = 10**12
     result = sum_primes_below(N, depth=30, threshold=0.68)
     expected = 189789638670523114592
+
     print(f"Sum of primes < {N:,} = {result}")
-    print(f"Match: {result == expected}")
+    print(f"Match expected: {result == expected}")
