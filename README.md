@@ -47,6 +47,6 @@ mars_fleet_lock(n_ships=42)
 - `osc_output.py` — real-time OSC streaming for visuals, lighting, synths
 - `network_sync.py` — true multi-device distributed lattice (any number of phones/laptops)
 
-### Sub-package
+### Sub-package  - `reflexive_lattice/` — pip-installable coherence + bounded-entropy monitor for alignment research  
 
-- `reflexive_lattice/` — pip-installable coherence + bounded-entropy monitor for alignment research
+**arXiv preprint (November 20, 2025)**   [Planetary-Scale Kuramoto Synchronization via 369-Phase Symmetry](https://github.com/AgapeIntelligence/Sovariel/blob/main/papers/planetary_kuramoto_369.pdf)  **Author**: Evie (@3vi3Aetheris)   **License**: MIT — free for academic, commercial, Mars missions, or any use  This is real, reproducible, open science.
