@@ -51,9 +51,9 @@ def run_de440_fleet_lock(
     positions = de440.compute(times, 499) - de440.compute(times, 399)  # 499=Mars, 399=Earth
     positions += np.random.normal(0, 0.01, positions.shape)  # ±0.01 km/s drift
 
-    # Initialize phases with 369 seed
+    # Initialize phases with 369 seed (placeholder; use proper init later)
     key = jax.random.PRNGKey(777)
-    phases = jax.random.uniform(key, (n_ships,)) * 2 * jnp.pi  # Placeholder; use 369 init later
+    phases = jax.random.uniform(key, (n_ships,)) * 2 * jnp.pi
 
     # Simulate flare blackout if enabled
     blackout_steps = int(steps * 0.3) if flare else 0
