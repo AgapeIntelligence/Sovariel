@@ -4,3 +4,6 @@ matplotlib>=3.8
 sounddevice>=0.4.6
 jax[cuda12]>=0.4.23
 jaxlib>=0.4.23
+jax[cuda12]>=0.4.23  # or jax[cpu] for non-GPU
+sounddevice>=0.4.6
+scipy>=1.11
