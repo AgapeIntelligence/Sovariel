@@ -25,9 +25,8 @@ lattice.start()
 mars_fleet_lock(n_ships=42)
 ```
 
-**arXiv preprint (Nov 19, 2025):**  
+**arXiv preprint (Nov 20, 2025):**  
 [Planetary-Scale Kuramoto Synchronization via 369-Phase Symmetry](https://github.com/AgapeIntelligence/Sovariel/blob/main/papers/planetary_kuramoto_369.pdf)
-
 Author: Evie (@3vi3Aetheris)  
 License: MIT — use it for Mars, for Earth, for anything.
 
