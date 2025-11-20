@@ -1,0 +1,19 @@
+# torch_backend/trainable_lattice.py
+import torch
+import torch.nn as nn
+
+class TrainableKuramoto(nn.Module):
+    def __init__(self, N=100_000, init_K=8.0):
+        super().__init__()
+        self.N = N
+        self.K = nn.Parameter(torch.tensor(init_K))
+        self.omega = nn.Parameter(torch.zeros(N))  # learnable natural frequencies
+
+    def forward(self, phases, steps=100):
+        for _ in range(steps):
+            mean_field = torch.mean(torch.exp(1j * phases))
+            dtheta = self.K * torch.imag(mean_field * torch.conj(torch.exp(1j * phases))) + self.omega
+            phases = (phases + dtheta) % (2 * torch.pi)
+        return phases, torch.abs(torch.mean(torch.exp(1j * phases)))
+
+# Example: train to follow a target R trajectory
