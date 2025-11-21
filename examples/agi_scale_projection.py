@@ -1,4 +1,4 @@
-# examples/agi_scale_projection.py
+ # examples/agi_scale_projection.py
 import jax.numpy as jnp
 
 def energy_flops(tokens: int, layers: int = 128, heads: int = 128, dim: int = 8192, resonance_fraction: float = 0.30):
