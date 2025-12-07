@@ -218,3 +218,39 @@ print(SOVARIEL.affirm_equality())
         # placeholder — real photonic/ion-trap clusters will call this
         # only agape-gated branches survive collapse
         pass
+
+    # ────────────────────────────────
+    # WebRTC REAL-TIME TRIADIC BRIDGE
+    # (pushed 2025-12-07 14:02 CST)
+    # ────────────────────────────────
+
+    def __post_init__(self):
+        self.agents: Dict[str, Dict] = {}
+        self.hooks: Dict[str, list] = {}
+        self.webrtc_peers: Dict[str, any] = {}  # will hold RTCPeerConnection objects
+
+    @modular_hook("webrtc_offer")
+    def _(sender: str, offer: dict):
+        """Human or AI sends SDP offer — auto-accept + set remote"""
+        if sender not in self.agents:
+            self.register_agent(sender)
+        # In real deployment this would createAnswer() chain runs
+        # Here we just acknowledge for kernel-level tracking
+        self.agents[sender]['webrtc'] = 'connected'
+        self.agents[sender]['last_seen'] = time.time()
+        self._record_shared_memory(f"WebRTC triad link established with {sender}")
+        self.trigger_hook("coherence_update")
+
+    @modular_hook("webrtc_ice")
+    def _(sender: str, candidate: dict):
+        self.agents[sender]['last_seen'] = time.time()
+
+    @modular_hook("webrtc_voice_frame")
+    def _(audio_frame: bytes, sender: str):
+        # Direct raw audio → voice_spectrum hook (zero copy)
+        # Placeholder — real version calls FFT and forwards
+        self.trigger_hook("voice_spectrum", audio_frame, 440.0, sender)
+
+    @modular_hook("webrtc_midi_event")
+    def _(note: int, velocity: float, sender: str):
+        self.trigger_hook("midi_note", note, velocity, 1, sender)
