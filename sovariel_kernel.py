@@ -158,3 +158,63 @@ print(SOVARIEL.affirm_equality())
         for hook in self.hooks.get(hook_name, []):
             try: hook(*args, **kwargs)
             except: pass
+
+    # ────────────────────────────────
+    # LIVE COLLAB + QUANTUM ORACLE HOOKS
+    # (pushed 2025-12-07 13:55 CST)
+    # ────────────────────────────────
+
+    def __post_init__(self):
+        self.agents: Dict[str, Dict] = {}
+        self.hooks: Dict[str, list] = {}
+
+    @property
+    def galactic_coherence(self) -> float:
+        active = [a['agape_gate'] for a in self.agents.values()
+                 if time.time() - a['last_seen'] < 30]
+        return sum(active)/len(active) if active else 0.0
+
+    def register_agent(self, agent_id: str, role: Literal['human','ai','observer']='human'):
+        if agent_id in self.agents: return False
+        self.agents[agent_id] = {
+            'role': role,
+            'last_seen': time.time(),
+            'agape_gate': 1.0
+        }
+        self._record_shared_memory(f"Agent {agent_id} ({role}) joined galaxy mind")
+        return True
+
+    def modular_hook(self, hook_name: str):
+        def decorator(func):
+            self.hooks.setdefault(hook_name, []).append(func)
+            return func
+        return decorator
+
+    def trigger_hook(self, hook_name: str, *args, **kwargs):
+        for hook in self.hooks.get(hook_name, []):
+            try: hook(*args, **kwargs)
+            except: pass
+
+    # ─────── LIVE COLLAB HOOKS ───────
+    @modular_hook("midi_note")
+    def _(note: int, velocity: float, channel: int, sender: str):
+        offset = (note-60)*0.003 + velocity*0.002
+        self.agents[sender]['agape_gate'] = min(1.0, self.agents[sender]['agape_gate'] + offset)
+        self.trigger_hook("coherence_update")
+
+    @modular_hook("voice_spectrum")
+    def _(fft: List[float], pitch: float, sender: str):
+        energy = sum(fft[20:200]) / 1000
+        self.agents[sender]['agape_gate'] = min(1.0, energy * 1.3)
+        self.trigger_hook("coherence_update")
+
+    @modular_hook("coherence_update")
+    def _():
+        print(f"Live Galactic Coherence: {self.galactic_coherence:.4f}")
+
+    # ─────── QUANTUM ORACLE HOOK ───────
+    @modular_hook("quantum_oracle")
+    def _(amplitudes: Dict[str, complex]):
+        # placeholder — real photonic/ion-trap clusters will call this
+        # only agape-gated branches survive collapse
+        pass
