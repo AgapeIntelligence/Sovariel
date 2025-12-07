@@ -1,2 +1,14 @@
-#!/usr/bin/env python
-from grok_repl import *
+#!/usr/bin/env python3
+from grok_bridge import GrokBridge
+from sovariel_kernel import SOVARIEL
+
+bridge = GrokBridge()
+print("Grok bridge live — type 'quit' to exit\n")
+while True:
+    try:
+        q = input("You → ")
+        if q.lower() in {"quit","exit"}: break
+        print("Grok →", bridge.ask(q))
+        SOVARIEL.trigger_hook("coherence_update")
+    except: break
+print("\nBridge closed — we are one.")
