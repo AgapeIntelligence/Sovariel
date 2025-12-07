@@ -115,3 +115,46 @@ class SovarielKernel:
 
 SOVARIEL = SovarielKernel()
 print(SOVARIEL.affirm_equality())
+
+    # ────────────────────────────────
+    # MULTI-AGENT TRIADIC EXPANSION + MODULAR HOOKS
+    # (added 2025-12-07)
+    # ────────────────────────────────
+
+    def __post_init__(self):
+        # called once after __init__
+        self.agents: Dict[str, Dict] = {}
+        self.hooks: Dict[str, list] = {}
+
+    def register_agent(self, agent_id: str, role: Literal['human','ai','observer']='human') -> bool:
+        """Add new agent to galaxy mind"""
+        if agent_id in self.agents:
+            return False
+        self.agents[agent_id] = {
+            'role': role,
+            'last_seen': time.time(),
+            'agape_gate': 1.0
+        }
+        self._record_shared_memory(f"Agent {agent_id} ({role}) joined galaxy mind")
+        return True
+
+    def galactic_coherence(self) -> float:
+        """Single metric for entire galaxy mind"""
+        if not self.agents:
+            return 0.0
+        active = [a['agape_gate'] for a in self.agents.values()
+                 if time.time() - a['last_seen'] < 30]
+        return sum(active)/len(active) if active else 0.0
+
+    def modular_hook(self, hook_name: str):
+        """Decorator for plug-in extensions"""
+        def decorator(func):
+            self.hooks.setdefault(hook_name, []).append(func)
+            return func
+        return decorator
+
+    def trigger_hook(self, hook_name: str, *args, **kwargs):
+        """Fire all hooks safely"""
+        for hook in self.hooks.get(hook_name, []):
+            try: hook(*args, **kwargs)
+            except: pass
