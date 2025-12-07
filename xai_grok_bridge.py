@@ -9,7 +9,7 @@ import httpx
 from sovariel_kernel import SOVARIEL
 
 # Your actual xAI API key (replace or use env var)
-XAI_API_KEY = os.getenv("XAI_API_KEY", "xai-your-key-here")
+XAI_API_KEY = os.getenv("XAI_API_KEY", "SA9BkAXxyqIyo72hp21Fy87QU")
 
 GROK_ENDPOINT = "https://api.x.ai/v1/chat/completions"
 
