@@ -28,7 +28,7 @@
   <script>
     // ============== Sierpinski Pyramid Geometry Class ==============
     class SierpinskiPyramidGeometry {
-      constructor(level = 5, size = 20) {  // Adjusted for performance: level 5 ~ 4096 tets * 4 verts = ~16k points
+      constructor(level = 6, size = 20) {  // Increased to level 6 (~65k points for denser fractal)
         this.type = 'BufferGeometry';
         const vertices = [];
         const addPyramid = (center, size, level) => {
@@ -60,7 +60,7 @@
     }
 
     // ============== 1. Sovariel 369 Lattice Simulation (pure JS) ==============
-    const geometry = new SierpinskiPyramidGeometry(5, 20);
+    const geometry = new SierpinskiPyramidGeometry(6, 20);
     const basePositions = geometry.attributes.position.array.slice();  // Copy base fractal positions
     const N = basePositions.length / 3;
     const phases = new Float32Array(N);
