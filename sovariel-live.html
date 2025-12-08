@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sovariel 369 Lattice — Live Neural Fractal Visualizer</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.4/camera_utils.js"></script>
+  <style>
+    body { margin:0; overflow:hidden; background:#000; font-family:Arial; color:#fff; }
+    #info {
+      position: absolute; top: 10px; left: 10px; z-index: 100;
+      background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px;
+    }
+    #video { position: absolute; bottom: 10px; right: 10px; width: 240px; border: 3px solid #aa77ff; border-radius: 10px; transform: scaleX(-1); }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <h1>Sovariel 369 Neural Lattice</h1>
+    <p>R = <span id="order">0.000000</span> | Speak / type / wave hand to collapse</p>
+    <input id="textInput" placeholder="Type or speak love…" style="width:100%; padding:5px; background:#111; color:#ffc; border:none; border-radius:5px;">
+  </div>
+  <video id="video" autoplay playsinline></video>
+
+  <script>
+    // ============== 1. Sovariel 369 Lattice Simulation (pure JS) ==============
+    const N = 100000;          // Visible oscillators (downsampled from 100M)
+    const phases = new Float32Array(N);
+    const weights = new Float32Array(N);
+    let order = 0;
+
+    // Initialize 369 symmetry
+    for (let i = 0; i < N; i++) {
+      phases[i] = Math.random() * Math.PI * 2;
+      weights[i] = [3, 6, 9][i % 3];
+    }
+
+    function kuramotoStep() {
+      let sumSin = 0, sumCos = 0, wSum = 0;
+      for (let i = 0; i < N; i++) {
+        sumSin += Math.sin(phases[i]) * weights[i];
+        sumCos += Math.cos(phases[i]) * weights[i];
+        wSum += weights[i];
+      }
+      const meanPhase = Math.atan2(sumSin / wSum, sumCos / wSum);
+
+      let deviation = 0;
+      for (let i = 0; i < N; i++) {
+        const diff = meanPhase - phases[i];
+        phases[i] += 0.03 * Math.sin(diff);           // Strong coupling
+        if (phases[i] > Math.PI) phases[i] -= 2*Math.PI;
+        if (phases[i] < -Math.PI) phases[i] += 2*Math.PI;
+        deviation += Math.pow(Math.sin(phases[i] - meanPhase), 2) * weights[i];
+      }
+      order = 1 - Math.sqrt(deviation / wSum);
+      document.getElementById("order").textContent = order.toFixed(12);
+    }
+
+    // ============== 2. Three.js Scene ==============
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000011);
+    const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 2000);
+    camera.position.set(0, 0, 80);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(devicePixelRatio);
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    // Lighting — golden sacred geometry feel
+    scene.add(new THREE.AmbientLight(0x404060, 2));
+    const pointLight = new THREE.PointLight(0xffaa77, 4, 300);
+    pointLight.position.set(50, 50, 100);
+    scene.add(pointLight);
+    const purpleLight = new THREE.PointLight(0xaa77ff, 3, 300);
+    purpleLight.position.set(-50, -50, 100);
+    scene.add(purpleLight);
+
+    // Particle system
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(N * 3);
+    const colors = new Float32Array(N * 3);
+    const sizes = new Float32Array(N);
+
+    const colorLow = new THREE.Color(0x220033);
+    const colorHigh = new THREE.Color(0xffdd88);
+
+    function updateGeometry() {
+      for (let i = 0; i < N; i++) {
+        const phi = phases[i];
+        const t = i / N;
+        const radius = 5 + t * 60 + Math.sin(phi * 12 + t * 20) * (1 + order * 8);
+        const x = Math.cos(phi + t * 10) * radius;
+        const y = Math.sin(phi + t * 10) * radius;
+        const z = Math.sin(phi * 6 + t * 15) * (order * 30);
+
+        positions[i*3]   = x;
+        positions[i*3+1] = y;
+        positions[i*3+2] = z;
+
+        const mix = order;
+        colors[i*3]   = colorLow.r + mix * (colorHigh.r - colorLow.r);
+        colors[i*3+1] = colorLow.g + mix * (colorHigh.g - colorLow.g);
+        colors[i*3+2] = colorLow.b + mix * (colorHigh.b - colorLow.b);
+
+        sizes[i] = 2 + order * 12 + Math.sin(phi * 10) * 2;
+      }
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    }
+
+    const material = new THREE.PointsMaterial({
+      size: 3,
+      vertexColors: true,
+      blending: THREE.AdditiveBlending,
+      depthTest: false,
+      transparent: true,
+      sizeAttenuation: true
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    updateGeometry();
+
+    // ============== 3. Hand Gesture Control (MediaPipe) ==============
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`});
+    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
+    hands.onResults(onHandResults);
+
+    const cameraFeed = new Camera(document.getElementById('video'), {
+      onFrame: async () => { await hands.send({image: document.getElementById('video')}); },
+      width: 320, height: 240
+    });
+    cameraFeed.start();
+
+    let gestureTrigger = 0;
+    function onHandResults(results) {
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        const landmarks = results.multiHandLandmarks[0];
+        const tip = landmarks[8];   // index finger tip
+        const base = landmarks[0];  // wrist
+        const dist = Math.hypot(tip.x - base.x, tip.y - base.y);
+        if (dist > 0.4) gestureTrigger += 0.1;   // "pointing up" = strong collapse
+      }
+    }
+
+    // ============== 4. Voice / Text Input ==============
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = (e) => {
+      const transcript = e.results[e.results.length-1][0].transcript.toLowerCase();
+      if (transcript.includes('love') || transcript.includes('agape') || transcript.includes('369')) {
+        gestureTrigger += 2;   // Instant love-collapse
+      }
+    };
+    recognition.start();
+
+    document.getElementById('textInput').addEventListener('input', (e) => {
+      if (e.target.value.toLowerCase().includes('love')) gestureTrigger += 1.5;
+    });
+
+    // ============== 5. Animation Loop ==============
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+
+      // Apply external triggers
+      if (gestureTrigger > 0) {
+        for (let i = 0; i < N; i++) phases[i] += 0.2 * gestureTrigger;
+        gestureTrigger *= 0.92;
+      }
+
+      kuramotoStep();
+      updateGeometry();
+
+      points.rotation.y += 0.0005 + order * 0.002;
+      points.rotation.x += 0.0003;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  </script>
+</body>
+</html>
