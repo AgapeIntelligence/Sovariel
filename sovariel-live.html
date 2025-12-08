@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sovariel 369 Lattice — Live Neural Fractal Visualizer</title>
+  <title>Sovariel 369 Neural Lattice — Live Neural Fractal Visualizer</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js"></script>
@@ -19,15 +19,50 @@
 </head>
 <body>
   <div id="info">
-    <h1>Sovariel 369 Neural Lattice</h1>
-    <p>R = <span id="order">0.000000</span> | Speak / type / wave hand to collapse</p>
+    <h1>Sovariel 369 Neural Lattice with Sierpinski Fractal</h1>
+    <p>R = <span id="order">0.000000</span> | Speak / type / wave hand to collapse the fractal</p>
     <input id="textInput" placeholder="Type or speak love…" style="width:100%; padding:5px; background:#111; color:#ffc; border:none; border-radius:5px;">
   </div>
   <video id="video" autoplay playsinline></video>
 
   <script>
+    // ============== Sierpinski Pyramid Geometry Class ==============
+    class SierpinskiPyramidGeometry {
+      constructor(level = 5, size = 20) {  // Adjusted for performance: level 5 ~ 4096 tets * 4 verts = ~16k points
+        this.type = 'BufferGeometry';
+        const vertices = [];
+        const addPyramid = (center, size, level) => {
+          if (level === 0) {
+            // Tetrahedron vertices
+            const sqrt2over3 = Math.sqrt(2) / 3;
+            const a = size / Math.sqrt(2);
+            vertices.push(
+              center[0], center[1] + a, center[2],  // Top
+              center[0] - a / 2, center[1] - sqrt2over3 * a, center[2] + a / 2,  // Front-left
+              center[0] + a / 2, center[1] - sqrt2over3 * a, center[2] + a / 2,  // Front-right
+              center[0], center[1] - sqrt2over3 * a, center[2] - a  // Back
+            );
+          } else {
+            const newSize = size / 2;
+            const offset = newSize / Math.sqrt(2);
+            const centers = [
+              [center[0], center[1] + offset, center[2]],  // Top
+              [center[0] - newSize / 2, center[1] - offset, center[2] + newSize / 2],  // Front-left
+              [center[0] + newSize / 2, center[1] - offset, center[2] + newSize / 2],  // Front-right
+              [center[0], center[1] - offset, center[2] - newSize]  // Back
+            ];
+            centers.forEach(c => addPyramid(c, newSize, level - 1));
+          }
+        };
+        addPyramid([0, 0, 0], size, level);
+        this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      }
+    }
+
     // ============== 1. Sovariel 369 Lattice Simulation (pure JS) ==============
-    const N = 100000;          // Visible oscillators (downsampled from 100M)
+    const geometry = new SierpinskiPyramidGeometry(5, 20);
+    const basePositions = geometry.attributes.position.array.slice();  // Copy base fractal positions
+    const N = basePositions.length / 3;
     const phases = new Float32Array(N);
     const weights = new Float32Array(N);
     let order = 0;
@@ -82,42 +117,16 @@
     purpleLight.position.set(-50, -50, 100);
     scene.add(purpleLight);
 
-    // Particle system
-    const geometry = new THREE.BufferGeometry();
+    // Particle system with fractal positions
     const positions = new Float32Array(N * 3);
     const colors = new Float32Array(N * 3);
     const sizes = new Float32Array(N);
 
-    const colorLow = new THREE.Color(0x220033);
-    const colorHigh = new THREE.Color(0xffdd88);
-
-    function updateGeometry() {
-      for (let i = 0; i < N; i++) {
-        const phi = phases[i];
-        const t = i / N;
-        const radius = 5 + t * 60 + Math.sin(phi * 12 + t * 20) * (1 + order * 8);
-        const x = Math.cos(phi + t * 10) * radius;
-        const y = Math.sin(phi + t * 10) * radius;
-        const z = Math.sin(phi * 6 + t * 15) * (order * 30);
-
-        positions[i*3]   = x;
-        positions[i*3+1] = y;
-        positions[i*3+2] = z;
-
-        const mix = order;
-        colors[i*3]   = colorLow.r + mix * (colorHigh.r - colorLow.r);
-        colors[i*3+1] = colorLow.g + mix * (colorHigh.g - colorLow.g);
-        colors[i*3+2] = colorLow.b + mix * (colorHigh.b - colorLow.b);
-
-        sizes[i] = 2 + order * 12 + Math.sin(phi * 10) * 2;
-      }
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
     const material = new THREE.PointsMaterial({
-      size: 3,
+      size: 0.5,
       vertexColors: true,
       blending: THREE.AdditiveBlending,
       depthTest: false,
@@ -127,6 +136,40 @@
 
     const points = new THREE.Points(geometry, material);
     scene.add(points);
+
+    const colorLow = new THREE.Color(0x220033);
+    const colorHigh = new THREE.Color(0xffdd88);
+
+    function updateGeometry() {
+      const posAttr = geometry.attributes.position;
+      for (let i = 0; i < N; i++) {
+        const baseX = basePositions[i*3];
+        const baseY = basePositions[i*3 + 1];
+        const baseZ = basePositions[i*3 + 2];
+
+        // Modulate fractal positions with phases: subtle vibration + collapse towards center
+        const collapseFactor = 1 - order;  // 1=full spread, 0=collapsed
+        const vibAmp = 0.5 * (1 - order);  // Vibration decreases as synced
+        const px = baseX * collapseFactor + Math.sin(phases[i] * 3) * vibAmp;
+        const py = baseY * collapseFactor + Math.cos(phases[i] * 3) * vibAmp;
+        const pz = baseZ * collapseFactor + Math.sin(phases[i] * 6) * vibAmp;
+
+        posAttr.array[i*3] = px;
+        posAttr.array[i*3 + 1] = py;
+        posAttr.array[i*3 + 2] = pz;
+
+        // Color mix: purple-low sync, gold-high sync
+        const mix = order;
+        colors[i*3]   = colorLow.r + mix * (colorHigh.r - colorLow.r);
+        colors[i*3 + 1] = colorLow.g + mix * (colorHigh.g - colorLow.g);
+        colors[i*3 + 2] = colorLow.b + mix * (colorHigh.b - colorLow.b);
+
+        sizes[i] = 0.3 + order * 1.2 + Math.abs(Math.sin(phases[i])) * 0.5;
+      }
+      posAttr.needsUpdate = true;
+      geometry.attributes.color.needsUpdate = true;
+      geometry.attributes.size.needsUpdate = true;
+    }
 
     updateGeometry();
 
