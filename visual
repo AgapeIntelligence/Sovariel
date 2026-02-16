@@ -1,0 +1,89 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Icosahedron vertices (seed structure)
+phi = (1 + np.sqrt(5)) / 2
+vertices = np.array([
+    [-1, phi, 0], [1, phi, 0], [-1, -phi, 0], [1, -phi, 0],
+    [0, -1, phi], [0, 1, phi], [0, -1, -phi], [0, 1, -phi],
+    [phi, 0, -1], [phi, 0, 1], [-phi, 0, -1], [-phi, 0, 1]
+])
+
+# Normalize to unit sphere
+vertices /= np.linalg.norm(vertices, axis=1)[:, np.newaxis]
+
+# Initial faces
+faces = np.array([
+    [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
+    [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+    [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
+    [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
+])
+
+# Recursive subdivision with edge deduplication and per-layer normalization
+def subdivide(vertices, faces, depth=2):
+    if depth == 0:
+        return vertices, faces
+    
+    new_vertices = list(vertices)  # Use list for efficient appends
+    new_faces = []
+    edge_midpoints = {}  # Cache midpoints to avoid duplicates
+    
+    def get_midpoint(a, b):
+        key = tuple(sorted([a, b]))
+        if key not in edge_midpoints:
+            mid = (vertices[a] + vertices[b]) / 2
+            new_vertices.append(mid)
+            edge_midpoints[key] = len(new_vertices) - 1
+        return edge_midpoints[key]
+    
+    for face in faces:
+        a, b, c = face
+        ab = get_midpoint(a, b)
+        bc = get_midpoint(b, c)
+        ca = get_midpoint(c, a)
+        
+        new_faces.extend([[a, ab, ca], [b, bc, ab], [c, ca, bc], [ab, bc, ca]])
+    
+    new_vertices = np.array(new_vertices)  # Convert back to array
+    # Normalize new points (per layer)
+    start = len(vertices)
+    norms = np.linalg.norm(new_vertices[start:], axis=1)[:, np.newaxis]
+    new_vertices[start:] /= norms
+    
+    new_faces = np.array(new_faces)
+    
+    # Recurse
+    return subdivide(new_vertices, new_faces, depth - 1)
+
+# Run subdivision
+sub_vertices, sub_faces = subdivide(vertices, faces, depth=2)
+
+# Preserve spherical form for interpolation
+sphere_form = sub_vertices.copy()
+
+# Toroidal mapping
+R, r_minor = 1.5, 0.6  # Major and minor radii
+theta = np.arctan2(sub_vertices[:, 1], sub_vertices[:, 0])
+phi = np.arctan2(sub_vertices[:, 2], np.sqrt(sub_vertices[:, 0]**2 + sub_vertices[:, 1]**2))
+torus_form = np.zeros_like(sub_vertices)
+torus_form[:, 0] = (R + r_minor * np.cos(phi)) * np.cos(theta)
+torus_form[:, 1] = (R + r_minor * np.cos(phi)) * np.sin(theta)
+torus_form[:, 2] = r_minor * np.sin(phi)
+
+# Smooth interpolation (blend factor t: 0=sphere, 1=torus)
+t = 0.5
+final_vertices = (1 - t) * sphere_form + t * torus_form
+
+# Visualization
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+# Trisurf with shading and antialiasing
+ax.plot_trisurf(final_vertices[:, 0], final_vertices[:, 1], final_vertices[:, 2], triangles=sub_faces, cmap='viridis', shade=True, antialiased=True)
+# Color by distance from origin for insight
+colors = np.linalg.norm(final_vertices, axis=1)
+ax.scatter(final_vertices[:, 0], final_vertices[:, 1], final_vertices[:, 2], c=colors, cmap='viridis', s=1)  # Small points for overlay
+
+ax.set_title('Refactored Fractal Icosahedral to Toroidal Prototype')
+plt.show()
